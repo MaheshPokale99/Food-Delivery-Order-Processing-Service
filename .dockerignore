@@ -1,0 +1,6 @@
+.git
+.env
+bin
+coverage.out
+tmp
+vaurd-backend-assignment.pdf

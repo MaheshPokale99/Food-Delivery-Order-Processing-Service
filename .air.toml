@@ -1,0 +1,15 @@
+root = "."
+tmp_dir = "tmp"
+
+[build]
+cmd = "go build -buildvcs=false -o ./tmp/main.exe ./cmd/api"
+entrypoint = "./tmp/main.exe"
+include_ext = ["go"]
+exclude_dir = ["tmp", "vendor", ".git"]
+delay = 1000
+stop_on_error = true
+send_interrupt = true
+kill_delay = 500
+
+[log]
+time = true
