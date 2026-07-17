@@ -27,6 +27,8 @@ docker-compose down
 
 Use `docker-compose down -v` only when you intentionally want to remove all local PostgreSQL data.
 
+Open `http://localhost:8080/docs` for interactive Swagger UI. The raw OpenAPI contract is available at `http://localhost:8080/openapi.yaml`.
+
 ## Hybrid mode: dependencies in Docker, Go services on WSL
 
 Start dependencies and the migration in Docker:

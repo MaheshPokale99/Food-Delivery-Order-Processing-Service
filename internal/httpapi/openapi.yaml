@@ -1,0 +1,158 @@
+openapi: 3.0.3
+info:
+  title: Food Delivery Order Processing Service API
+  version: 1.0.0
+  description: Current-state order monitoring API.
+servers:
+  - url: http://localhost:8080
+paths:
+  /v1/orders:
+    get:
+      summary: List current orders
+      parameters:
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/Status'
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        '200':
+          description: Current order page
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderPage'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /healthz:
+    get:
+      summary: Liveness check
+      responses:
+        '200':
+          description: Process is running
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Health'
+  /readyz:
+    get:
+      summary: Readiness check
+      responses:
+        '200':
+          description: PostgreSQL is reachable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ready'
+        '503':
+          description: PostgreSQL is unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /docs:
+    get:
+      summary: Swagger UI
+      responses:
+        '200':
+          description: Interactive API documentation
+components:
+  schemas:
+    Status:
+      type: string
+      enum: [Received, Preparing, Complete, Cancelled]
+    Item:
+      type: object
+      required: [itemId, qty]
+      properties:
+        itemId:
+          type: string
+        qty:
+          type: integer
+          minimum: 1
+          maximum: 100
+    Order:
+      type: object
+      required: [orderId, customerId, restaurantId, items, status, lastUpdatedAt, createdAt]
+      properties:
+        orderId:
+          type: string
+          format: uuid
+        customerId:
+          type: string
+        restaurantId:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Item'
+        status:
+          $ref: '#/components/schemas/Status'
+        lastUpdatedAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+    OrderPage:
+      type: object
+      required: [data, pagination]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Order'
+        pagination:
+          type: object
+          required: [limit, offset, total]
+          properties:
+            limit:
+              type: integer
+            offset:
+              type: integer
+            total:
+              type: integer
+    Health:
+      type: object
+      properties:
+        status:
+          type: string
+          example: ok
+    Ready:
+      type: object
+      properties:
+        status:
+          type: string
+          example: ready
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
+    BadRequest:
+      description: Invalid query parameters
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'

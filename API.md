@@ -2,6 +2,9 @@
 
 Base URL: `http://localhost:8080`
 
+Interactive Swagger UI: `GET /docs`  
+Raw OpenAPI contract: `GET /openapi.yaml`
+
 ## GET /v1/orders
 
 Returns the current state of orders from PostgreSQL. Results are sorted by `lastUpdatedAt` descending, then by `orderId` descending to make a stable page order.

@@ -1,6 +1,7 @@
 package httpapi
 
 import (
+	_ "embed"
 	"encoding/json"
 	"log/slog"
 	"net/http"
@@ -14,6 +15,9 @@ import (
 	"github.com/vaurd/food-delivery-order-service/internal/domain"
 	"github.com/vaurd/food-delivery-order-service/internal/repository"
 )
+
+//go:embed openapi.yaml
+var openAPISpec []byte
 
 type Server struct {
 	repo   *repository.OrderRepository
@@ -30,6 +34,8 @@ func New(repo *repository.OrderRepository, logger *slog.Logger) http.Handler {
 	router.Use(middleware.Timeout(10 * time.Second))
 	router.Get("/healthz", server.health)
 	router.Get("/readyz", server.ready)
+	router.Get("/docs", server.docs)
+	router.Get("/openapi.yaml", server.openapi)
 	router.Get("/v1/orders", server.listOrders)
 	return router
 }
@@ -45,6 +51,22 @@ func (s *Server) ready(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 	writeJSON(writer, http.StatusOK, map[string]string{"status": "ready"})
+}
+
+func (s *Server) docs(writer http.ResponseWriter, request *http.Request) {
+	writer.Header().Set("Content-Type", "text/html; charset=utf-8")
+	_, _ = writer.Write([]byte(`<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Order API Docs</title>
+<link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5.17.14/swagger-ui.css"></head>
+<body><div id="swagger-ui"></div>
+<script src="https://unpkg.com/swagger-ui-dist@5.17.14/swagger-ui-bundle.js"></script>
+<script>window.ui = SwaggerUIBundle({url: "/openapi.yaml", dom_id: "#swagger-ui"});</script>
+</body></html>`))
+}
+
+func (s *Server) openapi(writer http.ResponseWriter, request *http.Request) {
+	writer.Header().Set("Content-Type", "application/yaml; charset=utf-8")
+	_, _ = writer.Write(openAPISpec)
 }
 
 func (s *Server) listOrders(writer http.ResponseWriter, request *http.Request) {
